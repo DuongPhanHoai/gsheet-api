@@ -5,7 +5,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 
-import com.google.api.services.sheets.v4.model.ValueRange;
+import com.kms.util.ListUtils;
 import com.kms.util.StringUtils;
 
 public class Report {
@@ -20,15 +20,18 @@ public class Report {
   /**
    * find the test by name (static)
    * 
-   * @param testName  The test name to find
-   * @param sheetName The sheet to find the test
-   * @param sheetID   The sheetID which can get from the google sheet URL
+   * @param testName            The test name to find
+   * @param sheetName           The sheet to find the test
+   * @param sheetID             The sheetID which can get from the google sheet
+   *                            URL
+   * @param allowExistingResult TRUE: find Test which has result or not; FALSE:
+   *                            find the test which does not has Result
    * @return The row index of the found test ; -1 if not found
    */
-  public static int findTestByName(String testName, String sheetName, String sheetID) {
+  public static int findTestByName(String testName, String sheetName, String sheetID, boolean allowExistingResult) {
     Report foundReport = getReport(sheetID);
     if (foundReport != null)
-      return foundReport.findTestByName(testName, sheetName);
+      return foundReport.findTestByName(testName, sheetName, allowExistingResult);
     else
       return -1;
   }
@@ -36,17 +39,20 @@ public class Report {
   /**
    * update the test result by name (static)
    * 
-   * @param testName  The test name to find
-   * @param testName  The test result to update
-   * @param sheetName The sheet to find the test
-   * @param sheetID   The sheetID which can get from the google sheet URL
+   * @param testName        The test name to find
+   * @param testName        The test result to update
+   * @param sheetName       The sheet to find the test
+   * @param sheetID         The sheetID which can get from the google sheet URL
+   * @param overWriteResult Is True, overwrite result, else the new row of test
+   *                        will be created for the result
    * @return The row index of the found test and update result successful ; -1 if
    *         not found
    */
-  public static int updateTestResultByName(String testName, String testResult, String sheetName, String sheetID) {
+  public static int updateTestResultByName(String testName, String testResult, String sheetName, String sheetID,
+      boolean overWriteResult) {
     Report foundReport = getReport(sheetID);
     if (foundReport != null)
-      return foundReport.updateTestResultByName(testName, testResult, sheetName);
+      return foundReport.updateTestResultByName(testName, testResult, sheetName, overWriteResult);
     else
       return -1;
   }
@@ -112,41 +118,32 @@ public class Report {
   /**
    * find the test by name
    * 
-   * @param testName  The test name to find
-   * @param sheetName The sheet to find the test
+   * @param testName            The test name to find
+   * @param sheetName           The sheet to find the test
+   * @param allowExistingResult TRUE: find Test which has result or not; FALSE:
+   *                            find the test which does not has Result
    * @return The row index of the found test ; -1 if not found
    */
-  public int findTestByName(String testName, String sheetName) {
-    if (StringUtils.isEmpty(testName) || StringUtils.isEmpty(sheetName))
+  public int findTestByName(String testName, String sheetName, boolean allowExistingResult) {
+    if (StringUtils.isAnyEmpty(new String[] { testName, sheetName }))
       return -1;
     int blankCount = 0;
     for (int row10x = 0; row10x < 1000 && blankCount <= MAX_BLANK_ROW; row10x++) {
       // Get the Name Range
-      final String readRange = sheetName + "!" + TEST_NAME_COLUMN + (TEST_NAME_START_ROW + row10x * 10) + ":"
-          + TEST_NAME_COLUMN + (TEST_NAME_START_ROW + row10x * 10 + 10);
-      ValueRange testRange = Sheet.readRange(readRange, sheetID);
-      List<List<Object>> values = testRange.getValues();
-      if (values == null || values.isEmpty())
+      List<List<Object>> values = Sheet.readRange(sheetName, TEST_NAME_COLUMN, TEST_NAME_START_ROW + row10x * 10,
+          TEST_NAME_COLUMN, TEST_NAME_START_ROW + row10x * 10 + 10, sheetID);
+      if (ListUtils.isEmpty(values))
         break; // break in blank sheet
       else {
         for (int rowIndex = 0; rowIndex < 10 && blankCount <= MAX_BLANK_ROW; rowIndex++) {
-          if (rowIndex >= values.size()) {
-            blankCount = blankCount + 10 - values.size();
-            break;
-          }
-          List<Object> row = values.get(rowIndex);
-          if (row.get(0) != null) {
-            String scanName = ((String) row.get(0)).trim();
-            if (!scanName.isEmpty()) {
-              blankCount = 0;
-              maxRowIndex = (TEST_NAME_START_ROW + row10x * 10 + rowIndex);
-              if (testName.equalsIgnoreCase(scanName)) {
-                // Found test
-                return (TEST_NAME_START_ROW + row10x * 10 + rowIndex);
-              }
-            } else {
-              blankCount++;
-            }
+          String scanName = ListUtils.getValue(values, rowIndex, 0);
+          if (!StringUtils.isEmpty(scanName)) {
+            blankCount = 0;
+            maxRowIndex = (TEST_NAME_START_ROW + row10x * 10 + rowIndex); // now it is current index
+            if (testName.equalsIgnoreCase(scanName) && (allowExistingResult || StringUtils.isEmpty(ListUtils.getValue(
+                Sheet.readRange(sheetName, TEST_RESULT_COLUMN, maxRowIndex, TEST_RESULT_COLUMN, maxRowIndex, sheetID),
+                0, 0))))
+              return maxRowIndex;
           } else {
             blankCount++;
           }
@@ -154,19 +151,22 @@ public class Report {
       }
     }
     return -1;
+
   }
 
   /**
    * update the test result by name
    * 
-   * @param testName  The test name to find
-   * @param testName  The test result to update
-   * @param sheetName The sheet to find the test
+   * @param testName        The test name to find
+   * @param testName        The test result to update
+   * @param sheetName       The sheet to find the test
+   * @param overWriteResult Is True, overwrite result, else the new row of test
+   *                        will be created for the result
    * @return The row index of the found test and update result successful ; -1 if
    *         not found
    */
-  public int updateTestResultByName(String testName, String testResult, String sheetName) {
-    int foundTestRow = findTestByName(testName, sheetName, sheetID);
+  public int updateTestResultByName(String testName, String testResult, String sheetName, boolean overWriteResult) {
+    int foundTestRow = findTestByName(testName, sheetName, overWriteResult);
     if (foundTestRow >= 0)
       Sheet.setValue(testResult,
           sheetName + "!" + TEST_RESULT_COLUMN + foundTestRow + ":" + TEST_RESULT_COLUMN + foundTestRow, sheetID);

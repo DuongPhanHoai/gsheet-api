@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
@@ -46,8 +47,13 @@ public class Sheet {
    */
   private static Credential getCredentials(String credentialsFilePath, final NetHttpTransport httpTransport) {
     try {
+      // Disable log
+
       // Load client secrets
       InputStreamReader credentialReader = null;
+      final java.util.logging.Logger buggyLogger = java.util.logging.Logger
+          .getLogger(FileDataStoreFactory.class.getName());
+      buggyLogger.setLevel(java.util.logging.Level.SEVERE);
 
       if (!StringUtils.isEmpty(credentialsFilePath))
         Sheet.credentialsFilePath = credentialsFilePath;
@@ -72,19 +78,23 @@ public class Sheet {
   }
 
   /**
-   * readRange get the values from range (static)
+   * the the range by sheetID
    * 
-   * @param readRange The range to read
+   * @param sheetName
+   * @param startCol
+   * @param startRow
+   * @param endCol
+   * @param endRow
    * @param sheetID   The sheetID which can get from the google sheet URL
-   * @return The com.google.api.services.sheets.v4.model.ValueRange of the input
-   *         readRange in the sheetID
+   * @return
    */
-  public static ValueRange readRange(String readRange, String sheetID) {
+  public static List<List<Object>> readRange(String sheetName, String startCol, int startRow, String endCol, int endRow,
+      String sheetID) {
     Sheet foundSheet = getSheet(sheetID);
     if (foundSheet != null)
-      return foundSheet.readRange(readRange);
+      return foundSheet.readRange(sheetName, startCol, startRow, endCol, endRow);
     else
-      return null;
+      return Collections.emptyList();
   }
 
   /**
@@ -170,20 +180,25 @@ public class Sheet {
   }
 
   /**
-   * readRange get the values from range
+   * read the range from the input
    * 
-   * @param readRange The range to read
-   * @return The com.google.api.services.sheets.v4.model.ValueRange of the input
-   *         readRange in the sheetID
+   * @param sheetName
+   * @param startCol
+   * @param startRow
+   * @param endCol
+   * @param endRow
+   * @return
    */
-  public ValueRange readRange(String readRange) {
+  public List<List<Object>> readRange(String sheetName, String startCol, int startRow, String endCol, int endRow) {
     if (service != null)
       try {
-        return service.spreadsheets().values().get(sheetID, readRange).execute();
+        final String readRange = sheetName + "!" + startCol + startRow + ":" + endCol + endRow;
+        ValueRange valueRange = service.spreadsheets().values().get(sheetID, readRange).execute();
+        return valueRange.getValues();
       } catch (IOException e) {
         Logger.getLogger(CLASSNAME).log(Level.WARNING, e.getMessage());
       }
-    return null;
+    return Collections.emptyList();
   }
 
   /**

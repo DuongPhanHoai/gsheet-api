@@ -14,4 +14,32 @@ public class StringUtils {
   public static boolean isEmpty(String input) {
     return input == null || input.isEmpty() || input.trim().isEmpty();
   }
+
+  /**
+   * Check if any String in Array is empty
+   * 
+   * @param inputs
+   * @return
+   */
+  public static boolean isAnyEmpty(String[] inputs) {
+    for (String input : inputs) {
+      if (isEmpty(input))
+        return true;
+    }
+    return false;
+  }
+
+  /**
+   * Check if all strings are empty
+   * 
+   * @param inputs
+   * @return
+   */
+  public static boolean isAllEmpty(String[] inputs) {
+    for (String input : inputs) {
+      if (!isEmpty(input))
+        return false;
+    }
+    return true;
+  }
 }
