@@ -202,7 +202,7 @@ public class Sheet {
   }
 
   /**
-   * setValue get the values from range
+   * setValue set the values to range
    * 
    * @param value      To write to as String
    * @param writeRange The range to write

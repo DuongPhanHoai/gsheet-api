@@ -12,6 +12,7 @@ public class Report {
   public static final String CLASSNAME = "com.kms.gdrive.sheet.Report";
   static final String TEST_NAME_COLUMN = "C";
   static final String TEST_RESULT_COLUMN = "E";
+  static final int TEST_RESULT_COLUMN_INDEX = 4;
   static final int TEST_NAME_START_ROW = 5;
   static final int MAX_BLANK_ROW = 5;
   static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
@@ -190,7 +191,7 @@ public class Report {
    */
   public boolean createNewResultCol(String sheetName) {
     // Insert a column
-    Sheet.insertColumn(4, sheetID);
+    Sheet.insertColumn(TEST_RESULT_COLUMN_INDEX, sheetID);
 
     // Add the column label
     LocalDateTime now = LocalDateTime.now();
