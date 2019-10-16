@@ -1,9 +1,5 @@
-# Ignore Gradle project-specific cache directory
-.gradle
+# Ignore vscode
+.vscode
 
 # Ignore Gradle build output directory
-build
-.scannerwork
-tokens
-bin
-gradle
+target
