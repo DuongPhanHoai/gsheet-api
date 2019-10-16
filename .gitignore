@@ -1,5 +1,8 @@
 # Ignore vscode
 .vscode
+.classpath
+.project
+.settings
 
 # Ignore Gradle build output directory
 target
