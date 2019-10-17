@@ -6,3 +6,5 @@
 
 # Ignore Gradle build output directory
 target
+
+test.java
