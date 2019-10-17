@@ -4,7 +4,7 @@
 .project
 .settings
 
-# Ignore Gradle build output directory
+# Ignore build and test files
 target
-
 test.java
+src/main/java/com/kms/gdrive/sheet/test.java
