@@ -34,10 +34,17 @@ public class Sheet {
   public static final String CLASSNAME = "com.kms.gdrive.sheet.Sheet";
   private static final String APPLICATION_NAME = "KMS Google Sheet API";
   private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
-  private static final String TOKENS_DIRECTORY_PATH = "tokens";
-  private static final String CREDENTIALS_FILE_RESOURCE = "/gsheet-auth.json"; // As resource
-  private static String credentialsFilePath = "gsheet-auth.json";
+  private static String CREDENTIALS_DIRECTORY = "gconf";
+  private static String CREDENTIALS_FILE = "gsheet-auth.json"; // As resource
+  // private static String credentialsFilePath = "gsheet-auth.json";
   private static final List<String> SCOPES = Arrays.asList(SheetsScopes.SPREADSHEETS, SheetsScopes.DRIVE);
+
+  public static void setCredentialDir (String CREDENTIALS_DIRECTORY, String CREDENTIALS_FILE) {
+    if (!StringUtils.isEmpty(CREDENTIALS_DIRECTORY))
+      Sheet.CREDENTIALS_DIRECTORY = CREDENTIALS_DIRECTORY;
+    if (!StringUtils.isEmpty(CREDENTIALS_FILE))
+      Sheet.CREDENTIALS_FILE = CREDENTIALS_FILE;
+  }
 
   /**
    * Creates an authorized Credential object.
@@ -45,7 +52,7 @@ public class Sheet {
    * @param httpTransport The network HTTP Transport.
    * @return An authorized Credential object.
    */
-  private static Credential getCredentials(String credentialsFilePath, final NetHttpTransport httpTransport) {
+  private static Credential getCredentials(final NetHttpTransport httpTransport) {
     try {
       // Disable log
 
@@ -55,19 +62,25 @@ public class Sheet {
           .getLogger(FileDataStoreFactory.class.getName());
       buggyLogger.setLevel(java.util.logging.Level.SEVERE);
 
-      if (!StringUtils.isEmpty(credentialsFilePath))
-        Sheet.credentialsFilePath = credentialsFilePath;
-      File checkExists = new File(Sheet.credentialsFilePath);
+      // Load google report configuration directory path / env
+      File checkExists = new File(CREDENTIALS_DIRECTORY + File.separator + CREDENTIALS_FILE);
+
+      boolean resourceMode = true;
       if (checkExists.exists() && checkExists.isFile())
-        credentialReader = new InputStreamReader((new FileInputStream(Sheet.credentialsFilePath)));
-      else
-        credentialReader = new InputStreamReader(Sheet.class.getResourceAsStream(CREDENTIALS_FILE_RESOURCE));
+        resourceMode = false;
+      
+      credentialReader = resourceMode?
+        new InputStreamReader(Sheet.class.getResourceAsStream(File.separator+CREDENTIALS_FILE)):
+        new InputStreamReader((new FileInputStream(CREDENTIALS_DIRECTORY + File.separator + CREDENTIALS_FILE)));
+      File tokenDirFileObj = resourceMode?
+        new File(Sheet.class.getResource(File.separator).getFile()):
+        new File(CREDENTIALS_DIRECTORY);
 
       GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, credentialReader);
 
       // Build flow and trigger user authorization request.
       GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(httpTransport, JSON_FACTORY,
-          clientSecrets, SCOPES).setDataStoreFactory(new FileDataStoreFactory(new File(TOKENS_DIRECTORY_PATH)))
+          clientSecrets, SCOPES).setDataStoreFactory(new FileDataStoreFactory(tokenDirFileObj))
               .setAccessType("offline").build();
       LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
       return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
@@ -144,7 +157,7 @@ public class Sheet {
     if (hashSheets.containsKey(sheetID))
       return hashSheets.get(sheetID);
     else {
-      Sheet newSheet = new Sheet(sheetID, null);
+      Sheet newSheet = new Sheet(sheetID);
       hashSheets.put(sheetID, newSheet);
       return newSheet;
     }
@@ -166,13 +179,13 @@ public class Sheet {
    * 
    * @param sheetID The sheetID which can get from the sheet URL
    */
-  public Sheet(String sheetID, String credentialsFilePath) {
+  public Sheet(String sheetID) {
     try {
       this.sheetID = sheetID;
       NetHttpTransport.Builder transportBuilder = new NetHttpTransport.Builder();
       NetHttpTransport httpTransport = transportBuilder.build();
       transportBuilder.doNotValidateCertificate();
-      service = new Sheets.Builder(httpTransport, JSON_FACTORY, getCredentials(credentialsFilePath, httpTransport))
+      service = new Sheets.Builder(httpTransport, JSON_FACTORY, getCredentials(httpTransport))
           .setApplicationName(APPLICATION_NAME).build();
     } catch (Exception e) {
       Logger.getLogger(CLASSNAME).log(Level.WARNING, e.getMessage());
