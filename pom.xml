@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.duongphanhoai</groupId>
 	<artifactId>gsheet-report</artifactId>
-	<version>0.1.1</version>
+	<version>0.1.2-SNAPSHOT</version>
 	<name>gsheet-report</name>
 	<url>https://github.com/DuongPhanHoai/gsheet-java-api</url>
 
@@ -45,7 +45,7 @@
     <connection>scm:git:git://github.com/DuongPhanHoai/dependent-tasks-executor.git</connection>
     <developerConnection>scm:git:git@github.com:DuongPhanHoai/gsheet-java-api.git</developerConnection>
     <url>https://github.com/dexecutor/dependent-tasks-executor</url>
-    <tag>gsheet-report-0.1.1</tag>
+    <tag>HEAD</tag>
   </scm>
 	<build>
     <plugins>
