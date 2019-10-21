@@ -5,7 +5,29 @@
 	<artifactId>gsheet-report</artifactId>
 	<version>0.1.2-SNAPSHOT</version>
 	<name>gsheet-report</name>
-	<url>https://github.com/DuongPhanHoai/gsheet-java-api</url>
+  <url>https://github.com/DuongPhanHoai/gsheet-java-api</url>
+  <description>Google Sheet report libraries</description>
+  <developers>
+    <developer>
+      <id>duongphan</id>
+      <name>David Kent</name>
+      <email>phduong@gmail.com</email>
+      <url>https://github.com/DuongPhanHoai</url>
+      <roles>
+        <role>developer</role>
+      </roles>
+    </developer>
+  </developers>
+
+  <licenses>
+  <license>
+    <name>Apache License, Version 2.0</name>
+    <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    <distribution>repo</distribution>
+    <comments>A business-friendly OSS license</comments>
+  </license>
+</licenses>
+
 
 	<properties>
 		<maven.compiler.source>1.8</maven.compiler.source>
