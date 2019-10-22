@@ -13,7 +13,8 @@ public class Report {
   static final String TEST_NAME_COLUMN = "C";
   static final String TEST_RESULT_COLUMN = "E";
   static final int TEST_RESULT_COLUMN_INDEX = 4;
-  static final int TEST_NAME_START_ROW = 5;
+  static int TEST_NAME_START_ROW = 5;
+  public void set_TEST_NAME_START_ROW(int TEST_NAME_START_ROW) {Report.TEST_NAME_START_ROW = TEST_NAME_START_ROW;}
   static final int MAX_BLANK_ROW = 5;
   static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
 
@@ -114,7 +115,7 @@ public class Report {
   /**
    * the max Row which the Test Name is not empty
    */
-  int maxRowIndex = 0;
+  int maxRowIndex = 1;
 
   /**
    * find the test by name
@@ -172,6 +173,8 @@ public class Report {
       Sheet.setValue(testResult,
           sheetName + "!" + TEST_RESULT_COLUMN + foundTestRow + ":" + TEST_RESULT_COLUMN + foundTestRow, sheetID);
     else {
+      if (maxRowIndex < TEST_NAME_START_ROW)
+        maxRowIndex = TEST_NAME_START_ROW;
       foundTestRow = maxRowIndex + 1;
 
       Sheet.setValue(testName,
@@ -200,5 +203,20 @@ public class Report {
         + TEST_RESULT_COLUMN + (TEST_NAME_START_ROW - 1), sheetID);
 
     return false;
+  }
+  
+  /**
+   * overwrite the new test result colunm at the default location
+   * (TEST_RESULT_COLUMN)
+   * 
+   * @param title the header title 
+   * @param sheetName The sheet to find the test
+   */
+  public void overwriteResultColHeader(String title, String sheetName) {
+    // Add the column label
+    LocalDateTime now = LocalDateTime.now();
+    String colHeader = title + "-" + now.format(DATETIME_FORMATTER);
+    Sheet.setValue(colHeader, sheetName + "!" + TEST_RESULT_COLUMN + (TEST_NAME_START_ROW - 1) + ":"
+        + TEST_RESULT_COLUMN + (TEST_NAME_START_ROW - 1), sheetID);
   }
 }
