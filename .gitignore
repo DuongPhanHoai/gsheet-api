@@ -1,5 +1,8 @@
-# Ignore Gradle project-specific cache directory
+# Ignore project files
+.settings
 .gradle
+.classpath
+.project
 
 # Ignore Gradle build output directory
 build
@@ -7,3 +10,4 @@ build
 tokens
 bin
 gradle
+target
