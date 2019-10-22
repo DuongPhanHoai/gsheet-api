@@ -99,7 +99,7 @@ public class Sheet {
    * @param endCol    end Column to get range
    * @param endRow    end Row to get range
    * @param sheetID   The sheetID which can get from the google sheet URL
-   * @return
+   * @return the range
    */
   public static List<List<Object>> readRange(String sheetName, String startCol, int startRow, String endCol, int endRow,
       String sheetID) {
@@ -200,7 +200,7 @@ public class Sheet {
    * @param startRow  start Row to get range
    * @param endCol    end Column to get range
    * @param endRow    end Row to get range
-   * @return
+   * @return the range
    */
   public List<List<Object>> readRange(String sheetName, String startCol, int startRow, String endCol, int endRow) {
     if (service != null)
