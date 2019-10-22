@@ -41,7 +41,7 @@ public class Report {
    * update the test result by name (static)
    * 
    * @param testName        The test name to find
-   * @param testName        The test result to update
+   * @param testResult        The test result to update
    * @param sheetName       The sheet to find the test
    * @param sheetID         The sheetID which can get from the google sheet URL
    * @param overWriteResult Is True, overwrite result, else the new row of test
@@ -159,7 +159,7 @@ public class Report {
    * update the test result by name
    * 
    * @param testName        The test name to find
-   * @param testName        The test result to update
+   * @param testResult        The test result to update
    * @param sheetName       The sheet to find the test
    * @param overWriteResult Is True, overwrite result, else the new row of test
    *                        will be created for the result

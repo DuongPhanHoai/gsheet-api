@@ -18,8 +18,8 @@ public class StringUtils {
   /**
    * Check if any String in Array is empty
    * 
-   * @param inputs
-   * @return
+   * @param inputs as array of String
+   * @return true if any empty
    */
   public static boolean isAnyEmpty(String[] inputs) {
     for (String input : inputs) {
@@ -32,8 +32,8 @@ public class StringUtils {
   /**
    * Check if all strings are empty
    * 
-   * @param inputs
-   * @return
+   * @param inputs as array of String
+   * @return true if all empty
    */
   public static boolean isAllEmpty(String[] inputs) {
     for (String input : inputs) {

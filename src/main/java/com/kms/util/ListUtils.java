@@ -10,8 +10,8 @@ public class ListUtils {
   /**
    * Check if list is empty
    * 
-   * @param values
-   * @return
+   * @param values values to check is empty or not
+   * @return true if empty or null
    */
   public static boolean isEmpty(List<List<Object>> values) {
     return (values == null || values.isEmpty());
@@ -20,10 +20,10 @@ public class ListUtils {
   /**
    * Get the value from List by Row and Col indexes
    * 
-   * @param values
-   * @param rowIndex
-   * @param colIndex
-   * @return
+   * @param values value to get the value from
+   * @param rowIndex the row index
+   * @param colIndex the col index
+   * @return the value from List by Row and Col indexes
    */
   public static String getValue(List<List<Object>> values, int rowIndex, int colIndex) {
     if (isEmpty(values) || rowIndex >= values.size())
