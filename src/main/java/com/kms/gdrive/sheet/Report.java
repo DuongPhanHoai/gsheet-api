@@ -60,6 +60,21 @@ public class Report {
   }
 
   /**
+   * overwrite the new test result colunm at the default location
+   * (TEST_RESULT_COLUMN)
+   * 
+   * @param title the header title 
+   * @param sheetName The sheet to find the test
+   * @param sheetID   The sheetID which can get from the google sheet URL
+   * @return true if the column is inserted successful
+   */
+  public static void overwriteResultColHeader(String title, String sheetName, String sheetID) {
+    Report foundReport = getReport(sheetID);
+    if (foundReport != null)
+      foundReport.overwriteResultColHeader(title, sheetName);
+  }
+
+  /**
    * insert the new test result colunm at the default location
    * (TEST_RESULT_COLUMN) (static)
    * 
