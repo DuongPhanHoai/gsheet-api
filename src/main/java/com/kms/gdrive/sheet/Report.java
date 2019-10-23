@@ -10,10 +10,18 @@ import com.kms.util.StringUtils;
 
 public class Report {
   public static final String CLASSNAME = "com.kms.gdrive.sheet.Report";
-  static final String TEST_NAME_COLUMN = "C";
-  static final String TEST_RESULT_COLUMN = "E";
-  static final int TEST_RESULT_COLUMN_INDEX = 4;
+  static String TEST_NAME_COLUMN = "C";
+  static String TEST_RESULT_COLUMN = "E";
+  /**
+   * Do not input same column for both Name and Result
+   * @param TEST_NAME_COLUMN column character (Ex: "A" or "D") default is "C"
+   * @param TEST_RESULT_COLUMN column character (Ex: "A" or "D") default is "E"
+   */
+  static public void set_TEST_COLUMNS(String TEST_NAME_COLUMN, String TEST_RESULT_COLUMN) {Report.TEST_NAME_COLUMN = TEST_NAME_COLUMN;Report.TEST_RESULT_COLUMN = TEST_RESULT_COLUMN;}
   static int TEST_NAME_START_ROW = 5;
+  /**
+   * @param TEST_NAME_START_ROW default value is 5
+   */
   static public void set_TEST_NAME_START_ROW(int TEST_NAME_START_ROW) {Report.TEST_NAME_START_ROW = TEST_NAME_START_ROW;}
   static final int MAX_BLANK_ROW = 5;
   static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
@@ -208,7 +216,7 @@ public class Report {
    */
   public boolean createNewResultCol(String sheetName) {
     // Insert a column
-    Sheet.insertColumn(TEST_RESULT_COLUMN_INDEX, sheetID);
+    Sheet.insertColumn(letterToColumn(TEST_RESULT_COLUMN), sheetID);
 
     // Add the column label
     LocalDateTime now = LocalDateTime.now();
@@ -232,5 +240,32 @@ public class Report {
     String colHeader = title + "-" + now.format(DATETIME_FORMATTER);
     Sheet.setValue(colHeader, sheetName + "!" + TEST_RESULT_COLUMN + (TEST_NAME_START_ROW - 1) + ":"
         + TEST_RESULT_COLUMN + (TEST_NAME_START_ROW - 1), sheetID);
+  }
+
+
+
+  // Follow help from: 
+  static public String columnToLetter(int column)
+  {
+    int temp;
+    String letter = "";
+    while (column > 0)
+    {
+      temp = (column) % 26;
+      letter = (char)(temp + 65) + letter;
+      column = (column - temp - 1) / 26;
+    }
+    return letter;
+  }
+
+  static public int letterToColumn(String letter)
+  {
+    int column = 0;
+    int length = letter.length();
+    for (int i = 0; i < length; i++)
+    {
+      column += ((int)letter.charAt(i) - 64) * Math.pow(26, length - i - 1);
+    }
+    return column - 1;
   }
 }
