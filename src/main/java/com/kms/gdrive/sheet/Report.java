@@ -14,7 +14,7 @@ public class Report {
   static final String TEST_RESULT_COLUMN = "E";
   static final int TEST_RESULT_COLUMN_INDEX = 4;
   static int TEST_NAME_START_ROW = 5;
-  public void set_TEST_NAME_START_ROW(int TEST_NAME_START_ROW) {Report.TEST_NAME_START_ROW = TEST_NAME_START_ROW;}
+  static public void set_TEST_NAME_START_ROW(int TEST_NAME_START_ROW) {Report.TEST_NAME_START_ROW = TEST_NAME_START_ROW;}
   static final int MAX_BLANK_ROW = 5;
   static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
 
