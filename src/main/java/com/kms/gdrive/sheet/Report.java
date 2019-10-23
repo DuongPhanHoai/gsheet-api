@@ -20,7 +20,7 @@ public class Report {
   static public void set_TEST_COLUMNS(String TEST_NAME_COLUMN, String TEST_RESULT_COLUMN) {Report.TEST_NAME_COLUMN = TEST_NAME_COLUMN;Report.TEST_RESULT_COLUMN = TEST_RESULT_COLUMN;}
   static int TEST_NAME_START_ROW = 5;
   /**
-   * @param TEST_NAME_START_ROW default value is 5
+   * @param TEST_NAME_START_ROW default value is 5, min number is 2
    */
   static public void set_TEST_NAME_START_ROW(int TEST_NAME_START_ROW) {Report.TEST_NAME_START_ROW = TEST_NAME_START_ROW;}
   static final int MAX_BLANK_ROW = 5;
@@ -93,6 +93,23 @@ public class Report {
     Report foundReport = getReport(sheetID);
     if (foundReport != null)
       return foundReport.createNewResultCol(sheetName);
+    else
+      return false;
+  }
+
+  /**
+   * insert the new test result colunm with title
+   * (TEST_RESULT_COLUMN) (static)
+   * 
+   * @param title the header title 
+   * @param sheetName The sheet to find the test
+   * @param sheetID   The sheetID which can get from the google sheet URL
+   * @return true if the column is inserted successful
+   */
+  public static boolean createNewResultColTitle(String title, String sheetName, String sheetID) {
+    Report foundReport = getReport(sheetID);
+    if (foundReport != null)
+      return foundReport.createNewResultColTitle(title, sheetName);
     else
       return false;
   }
@@ -223,7 +240,25 @@ public class Report {
     String colHeader = now.format(DATETIME_FORMATTER);
     Sheet.setValue(colHeader, sheetName + "!" + TEST_RESULT_COLUMN + (TEST_NAME_START_ROW - 1) + ":"
         + TEST_RESULT_COLUMN + (TEST_NAME_START_ROW - 1), sheetID);
+    return false;
+  }
+  /**
+   * insert the new test result colunm at the default location
+   * (TEST_RESULT_COLUMN)
+   * 
+   * @param title the header title 
+   * @param sheetName The sheet to find the test
+   * @return true if the column is inserted successful
+   */
+  public boolean createNewResultColTitle(String title, String sheetName) {
+    // Insert a column
+    Sheet.insertColumn(letterToColumn(TEST_RESULT_COLUMN), sheetID);
 
+    // Add the column label
+    LocalDateTime now = LocalDateTime.now();
+    String colHeader = title + "-" + now.format(DATETIME_FORMATTER);
+    Sheet.setValue(colHeader, sheetName + "!" + TEST_RESULT_COLUMN + (TEST_NAME_START_ROW - 1) + ":"
+        + TEST_RESULT_COLUMN + (TEST_NAME_START_ROW - 1), sheetID);
     return false;
   }
   
