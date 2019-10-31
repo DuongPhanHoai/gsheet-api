@@ -233,7 +233,7 @@ public class Report {
    */
   public boolean createNewResultCol(String sheetName) {
     // Insert a column
-    Sheet.insertColumn(letterToColumn(TEST_RESULT_COLUMN), sheetID);
+    Sheet.insertColumn(letterToColumn(TEST_RESULT_COLUMN), sheetName, sheetID);
 
     // Add the column label
     LocalDateTime now = LocalDateTime.now();
@@ -252,7 +252,7 @@ public class Report {
    */
   public boolean createNewResultColTitle(String title, String sheetName) {
     // Insert a column
-    Sheet.insertColumn(letterToColumn(TEST_RESULT_COLUMN), sheetID);
+    Sheet.insertColumn(letterToColumn(TEST_RESULT_COLUMN), sheetName, sheetID);
 
     // Add the column label
     LocalDateTime now = LocalDateTime.now();

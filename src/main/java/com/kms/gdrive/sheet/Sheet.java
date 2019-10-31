@@ -131,12 +131,13 @@ public class Sheet {
    * 
    * @param columnIndex The index of the column to insert
    * @param sheetID     The sheetID which can get from the google sheet URL
+   * @param sheetName   The sheet Name to insert result col
    * @return true is successful
    */
-  public static boolean insertColumn(int columnIndex, String sheetID) {
+  public static boolean insertColumn(int columnIndex, String sheetName, String sheetID) {
     Sheet foundSheet = getSheet(sheetID);
     if (foundSheet != null)
-      return foundSheet.insertColumn(columnIndex);
+      return foundSheet.insertColumn(columnIndex, sheetName);
     else
       return false;
   }
@@ -240,32 +241,41 @@ public class Sheet {
    * insert a column at the index
    * 
    * @param columnIndex The index of the column to insert
+   * @param sheetName   The sheet Name to insert result col
    * @return true is successful
    */
-  public boolean insertColumn(int columnIndex) {
+  public boolean insertColumn(int columnIndex, String sheetName) {
     Spreadsheet spreadsheet = null;
     if (service != null)
       // Get sheet id
       try {
         spreadsheet = service.spreadsheets().get(sheetID).execute();
 
-        Integer isheetID = spreadsheet.getSheets().get(0).getProperties().getSheetId();
+        Integer isheetID = -1;
+        
+        for (int iSheetIndex = 0 ; iSheetIndex < spreadsheet.getSheets().size() ; iSheetIndex ++)
+          if (spreadsheet.getSheets().get(iSheetIndex).getProperties().getTitle().equalsIgnoreCase(sheetName)) {
+            isheetID = spreadsheet.getSheets().get(iSheetIndex).getProperties().getSheetId();
+            break;
+          }
 
-        // Set column insert
-        DimensionRange dimentionRange = new DimensionRange();
-        dimentionRange.setStartIndex(columnIndex);
-        dimentionRange.setEndIndex(columnIndex + 1);
-        dimentionRange.setSheetId(isheetID);
-        dimentionRange.setDimension("COLUMNS");
+        if (isheetID >= 0) {
+          // Set column insert
+          DimensionRange dimentionRange = new DimensionRange();
+          dimentionRange.setStartIndex(columnIndex);
+          dimentionRange.setEndIndex(columnIndex + 1);
+          dimentionRange.setSheetId(isheetID);
+          dimentionRange.setDimension("COLUMNS");
 
-        InsertDimensionRequest insertCol = new InsertDimensionRequest();
-        insertCol.setRange(dimentionRange);
+          InsertDimensionRequest insertCol = new InsertDimensionRequest();
+          insertCol.setRange(dimentionRange);
 
-        // Execute to insert column
-        BatchUpdateSpreadsheetRequest r = new BatchUpdateSpreadsheetRequest()
-            .setRequests(Arrays.asList(new Request().setInsertDimension(insertCol)));
-        service.spreadsheets().batchUpdate(sheetID, r).execute();
-        return true;
+          // Execute to insert column
+          BatchUpdateSpreadsheetRequest r = new BatchUpdateSpreadsheetRequest()
+              .setRequests(Arrays.asList(new Request().setInsertDimension(insertCol)));
+          service.spreadsheets().batchUpdate(sheetID, r).execute();
+          return true;
+        }
       } catch (IOException e) {
         Logger.getLogger(CLASSNAME).log(Level.WARNING, e.getMessage());
       }
