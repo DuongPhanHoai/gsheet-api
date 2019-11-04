@@ -421,7 +421,7 @@ public class Report {
     static ArrayList<testResult> results = new ArrayList<testResult>();
 
     static public int findTheTestIndex(String name) {
-      for (int iExistingResult = (results.size() - 1); iExistingResult >= 0; iExistingResult++)
+      for (int iExistingResult = (results.size() - 1); iExistingResult >= 0; iExistingResult--)
         if (results.get(iExistingResult).equal(name))
           return results.get(iExistingResult).getIndex();
       return -1;
