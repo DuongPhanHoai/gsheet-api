@@ -2,6 +2,7 @@ package com.kms.gdrive.sheet;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -30,7 +31,7 @@ public class Report {
   /**
    * find the test by name (static)
    * 
-   * @param testName            The test name to find
+   * @param tcName            The test name to find
    * @param sheetName           The sheet to find the test
    * @param sheetID             The sheetID which can get from the google sheet
    *                            URL
@@ -38,10 +39,10 @@ public class Report {
    *                            find the test which does not has Result
    * @return The row index of the found test ; -1 if not found
    */
-  public static int findTestByName(String testName, String sheetName, String sheetID, boolean allowExistingResult) {
+  public static int findTestByName(String tcName, String sheetName, String sheetID, boolean allowExistingResult) {
     Report foundReport = getReport(sheetID);
     if (foundReport != null)
-      return foundReport.findTestByName(testName, sheetName, allowExistingResult);
+      return foundReport.findTestByName(tcName, sheetName, allowExistingResult);
     else
       return -1;
   }
@@ -49,8 +50,8 @@ public class Report {
   /**
    * update the test result by name (static)
    * 
-   * @param testName        The test name to find
-   * @param testResult        The test result to update
+   * @param tcName        The test name to find
+   * @param tcResult        The test result to update
    * @param sheetName       The sheet to find the test
    * @param sheetID         The sheetID which can get from the google sheet URL
    * @param overWriteResult Is True, overwrite result, else the new row of test
@@ -58,11 +59,11 @@ public class Report {
    * @return The row index of the found test and update result successful ; -1 if
    *         not found
    */
-  public static int updateTestResultByName(String testName, String testResult, String sheetName, String sheetID,
+  public static int updateTestResultByName(String tcName, String tcResult, String sheetName, String sheetID,
       boolean overWriteResult) {
     Report foundReport = getReport(sheetID);
     if (foundReport != null)
-      return foundReport.updateTestResultByName(testName, testResult, sheetName, overWriteResult);
+      return foundReport.updateTestResultByName(tcName, tcResult, sheetName, overWriteResult);
     else
       return -1;
   }
@@ -159,14 +160,14 @@ public class Report {
   /**
    * find the test by name
    * 
-   * @param testName            The test name to find
+   * @param tcName            The test name to find
    * @param sheetName           The sheet to find the test
    * @param allowExistingResult TRUE: find Test which has result or not; FALSE:
    *                            find the test which does not has Result
    * @return The row index of the found test ; -1 if not found
    */
-  public int findTestByName(String testName, String sheetName, boolean allowExistingResult) {
-    if (StringUtils.isAnyEmpty(new String[] { testName, sheetName }))
+  public int findTestByName(String tcName, String sheetName, boolean allowExistingResult) {
+    if (StringUtils.isAnyEmpty(new String[] { tcName, sheetName }))
       return -1;
     int blankCount = 0;
     for (int row10x = 0; row10x < 1000 && blankCount <= MAX_BLANK_ROW; row10x++) {
@@ -181,7 +182,7 @@ public class Report {
           if (!StringUtils.isEmpty(scanName)) {
             blankCount = 0;
             maxRowIndex = (TEST_NAME_START_ROW + row10x * 10 + rowIndex); // now it is current index
-            if (testName.equalsIgnoreCase(scanName) && (allowExistingResult || StringUtils.isEmpty(ListUtils.getValue(
+            if (tcName.equalsIgnoreCase(scanName) && (allowExistingResult || StringUtils.isEmpty(ListUtils.getValue(
                 Sheet.readRange(sheetName, TEST_RESULT_COLUMN, maxRowIndex, TEST_RESULT_COLUMN, maxRowIndex, sheetID),
                 0, 0))))
               return maxRowIndex;
@@ -192,34 +193,103 @@ public class Report {
       }
     }
     return -1;
-
   }
 
   /**
    * update the test result by name
    * 
-   * @param testName        The test name to find
-   * @param testResult        The test result to update
+   * @param tcName        The test name to find
+   * @param tcResult        The test result to update
    * @param sheetName       The sheet to find the test
    * @param overWriteResult Is True, overwrite result, else the new row of test
    *                        will be created for the result
    * @return The row index of the found test and update result successful ; -1 if
    *         not found
    */
-  public int updateTestResultByName(String testName, String testResult, String sheetName, boolean overWriteResult) {
-    int foundTestRow = findTestByName(testName, sheetName, overWriteResult);
+  public int updateTestResultByName(String tcName, String tcResult, String sheetName, boolean overWriteResult) {
+    int foundTestRow = findTestByName(tcName, sheetName, overWriteResult);
     if (foundTestRow >= 0)
-      Sheet.setValue(testResult,
+      Sheet.setValue(tcResult,
           sheetName + "!" + TEST_RESULT_COLUMN + foundTestRow + ":" + TEST_RESULT_COLUMN + foundTestRow, sheetID);
     else {
       if (maxRowIndex < TEST_NAME_START_ROW)
         maxRowIndex = TEST_NAME_START_ROW;
       foundTestRow = maxRowIndex + 1;
 
-      Sheet.setValue(testName,
+      Sheet.setValue(tcName,
           sheetName + "!" + TEST_NAME_COLUMN + foundTestRow + ":" + TEST_NAME_COLUMN + foundTestRow, sheetID);
-      Sheet.setValue(testResult,
+      Sheet.setValue(tcResult,
           sheetName + "!" + TEST_RESULT_COLUMN + foundTestRow + ":" + TEST_RESULT_COLUMN + foundTestRow, sheetID);
+    }
+    return foundTestRow;
+  }
+
+  /**
+   * find the test by name in the existing result column
+   * 
+   * @param tcName            The test name to find
+   * @param sheetName           The sheet to find the test
+   * @return The row index of the found test ; -1 if not found
+   */
+  public int findTestInExistingResult(String tcName, String sheetName) {
+    // Get the test index from the existing result
+    int existingResultIndex = testResult.findTheTestIndex(tcName);
+    // Prepare to search test
+    existingResultIndex ++;
+    int matchCount = -1;
+    int blankCount = 0;
+    for (int row10x = 0; row10x < 1000 && blankCount <= MAX_BLANK_ROW; row10x++) {
+      // Get the Name Range
+      List<List<Object>> values = Sheet.readRange(sheetName, TEST_NAME_COLUMN, TEST_NAME_START_ROW + row10x * 10,
+          TEST_NAME_COLUMN, TEST_NAME_START_ROW + row10x * 10 + 10, sheetID);
+      if (ListUtils.isEmpty(values))
+        break; // break in blank sheet
+      else {
+        for (int rowIndex = 0; rowIndex < 10 && blankCount <= MAX_BLANK_ROW; rowIndex++) {
+          String scanName = ListUtils.getValue(values, rowIndex, 0);
+          if (!StringUtils.isEmpty(scanName)) {
+            blankCount = 0;
+            maxRowIndex = (TEST_NAME_START_ROW + row10x * 10 + rowIndex); // now it is current index
+            if (tcName.equalsIgnoreCase(scanName)) {
+              matchCount ++;
+              if (matchCount == existingResultIndex)
+                return maxRowIndex;
+            }
+          } else {
+            blankCount++;
+          }
+        }
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * update the test result by name in the existing result column
+   * 
+   * @param tcName        The test name to find
+   * @param tcResult        The test result to update
+   * @param sheetName       The sheet to find the test
+   * @return The row index of the found test and update result successful ; -1 if
+   *         not found
+   */
+  public int updateTestResultInExistingResult(String tcName, String tcResult, String sheetName) {
+    int foundTestRow = findTestInExistingResult(tcName, sheetName);
+    if (foundTestRow >= 0) {
+      testResult.addNew(tcName, tcResult);
+      Sheet.setValue(tcResult,
+          sheetName + "!" + TEST_RESULT_COLUMN + foundTestRow + ":" + TEST_RESULT_COLUMN + foundTestRow, sheetID);
+    }
+    else {
+      if (maxRowIndex < TEST_NAME_START_ROW)
+        maxRowIndex = TEST_NAME_START_ROW;
+      foundTestRow = maxRowIndex + 1;
+
+      Sheet.setValue(tcName,
+          sheetName + "!" + TEST_NAME_COLUMN + foundTestRow + ":" + TEST_NAME_COLUMN + foundTestRow, sheetID);
+      Sheet.setValue(tcResult,
+          sheetName + "!" + TEST_RESULT_COLUMN + foundTestRow + ":" + TEST_RESULT_COLUMN + foundTestRow, sheetID);
+          testResult.addNew(tcName, tcResult);
     }
     return foundTestRow;
   }
@@ -302,5 +372,41 @@ public class Report {
       column += ((int)letter.charAt(i) - 64) * Math.pow(26, length - i - 1);
     }
     return column - 1;
+  }
+
+  static class testResult {
+    String name = null;
+    int index = -1;
+
+    public int getIndex() {
+      return index;
+    }
+
+    String result = null;
+
+    public testResult(String name, String result, int index) {
+      this.name = name;
+      this.result = result;
+      this.index = index;
+    }
+
+    public boolean equal(String name) {
+      if (this.name != null && name != null)
+        return this.name.equalsIgnoreCase(name);
+      return false;
+    }
+
+    // FACTORY
+    static ArrayList<testResult> results = new ArrayList<testResult>();
+    static public int findTheTestIndex(String name) {
+      for (int iExistingResult = (results.size() - 1); iExistingResult >= 0; iExistingResult++)
+        if (results.get(iExistingResult).equal(name))
+          return results.get(iExistingResult).getIndex();
+      return -1;
+    }
+    static public void addNew(String name, String result) {
+      int foundIndex = findTheTestIndex(name) + 1;
+      results.add(new testResult(name, result, foundIndex));
+    }
   }
 }
