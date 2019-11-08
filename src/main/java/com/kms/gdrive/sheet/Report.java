@@ -25,7 +25,7 @@ public class Report {
     Report.TEST_RESULT_COLUMN = TEST_RESULT_COLUMN;
   }
 
-  static int TEST_NAME_START_ROW = 5;
+  static int TEST_NAME_START_ROW = 7;
 
   /**
    * @param TEST_NAME_START_ROW default value is 5, min number is 2

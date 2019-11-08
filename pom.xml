@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.duongphanhoai</groupId>
 	<artifactId>gsheet-report</artifactId>
-	<version>0.1.17</version>
+	<version>0.1.18</version>
 	<name>gsheet-report</name>
   <url>https://github.com/DuongPhanHoai/gsheet-java-api</url>
   <description>Google Sheet report libraries</description>
