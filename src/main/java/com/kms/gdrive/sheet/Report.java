@@ -2,7 +2,6 @@ package com.kms.gdrive.sheet;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -11,27 +10,27 @@ import com.kms.util.StringUtils;
 
 public class Report {
   public static final String CLASSNAME = "com.kms.gdrive.sheet.Report";
-  static String TEST_NAME_COLUMN = "C";
-  static String TEST_RESULT_COLUMN = "E";
+  static String testNameCol = "C";
+  static String testResultCol = "E";
 
   /**
    * Do not input same column for both Name and Result
    * 
-   * @param TEST_NAME_COLUMN   column character (Ex: "A" or "D") default is "C"
-   * @param TEST_RESULT_COLUMN column character (Ex: "A" or "D") default is "E"
+   * @param testNameCol   column character (Ex: "A" or "D") default is "C"
+   * @param testResultCol column character (Ex: "A" or "D") default is "E"
    */
-  static public void set_TEST_COLUMNS(String TEST_NAME_COLUMN, String TEST_RESULT_COLUMN) {
-    Report.TEST_NAME_COLUMN = TEST_NAME_COLUMN;
-    Report.TEST_RESULT_COLUMN = TEST_RESULT_COLUMN;
+  public static void setTestCols(String testNameCol, String testResultCol) {
+    Report.testNameCol = testNameCol;
+    Report.testResultCol = testResultCol;
   }
 
-  static int TEST_NAME_START_ROW = 12;
+  static int testNameStartRow = 12;
 
   /**
-   * @param TEST_NAME_START_ROW default value is 12, min number is 2
+   * @param testNameStartRow default value is 12, min number is 2
    */
-  static public void set_TEST_NAME_START_ROW(int TEST_NAME_START_ROW) {
-    Report.TEST_NAME_START_ROW = TEST_NAME_START_ROW;
+  public static void setTestNameStartRow(int testNameStartRow) {
+    Report.testNameStartRow = testNameStartRow;
   }
 
   static final int MAX_BLANK_ROW = 5;
@@ -51,10 +50,7 @@ public class Report {
    */
   public static int findTestByName(String tcName, String sheetName, String sheetID, boolean allowExistingResult) {
     Report foundReport = getReport(sheetID);
-    if (foundReport != null)
-      return foundReport.findTestByName(tcName, sheetName, allowExistingResult);
-    else
-      return -1;
+    return (foundReport == null)?-1:foundReport.findTestByName(tcName, sheetName, allowExistingResult);
   }
 
   /**
@@ -72,10 +68,7 @@ public class Report {
   public static int updateTestResultByName(String tcName, String tcResult, String sheetName, String sheetID,
       boolean overWriteResult) {
     Report foundReport = getReport(sheetID);
-    if (foundReport != null)
-      return foundReport.updateTestResultByName(tcName, tcResult, sheetName, overWriteResult);
-    else
-      return -1;
+    return (foundReport == null)?-1:foundReport.updateTestResultByName(tcName, tcResult, sheetName, overWriteResult);
   }
 
   /**
@@ -90,15 +83,12 @@ public class Report {
    */
   public static int updateTestResultInExistingResult(String tcName, String tcResult, String sheetName, String sheetID) {
     Report foundReport = getReport(sheetID);
-    if (foundReport != null)
-      return foundReport.updateTestResultInExistingResult(tcName, tcResult, sheetName);
-    else
-      return -1;
+    return (foundReport == null)?-1:foundReport.updateTestResultInExistingResult(tcName, tcResult, sheetName);
   }
 
   /**
    * overwrite the new test result colunm at the default location
-   * (TEST_RESULT_COLUMN)
+   * (testResultCol)
    * 
    * @param title     the header title
    * @param sheetName The sheet to find the test
@@ -112,7 +102,7 @@ public class Report {
 
   /**
    * insert the new test result colunm at the default location
-   * (TEST_RESULT_COLUMN) (static)
+   * (testResultCol) (static)
    * 
    * @param sheetName The sheet to find the test
    * @param sheetID   The sheetID which can get from the google sheet URL
@@ -120,14 +110,11 @@ public class Report {
    */
   public static boolean createNewResultCol(String sheetName, String sheetID) {
     Report foundReport = getReport(sheetID);
-    if (foundReport != null)
-      return foundReport.createNewResultCol(sheetName);
-    else
-      return false;
+    return (foundReport != null)&&foundReport.createNewResultCol(sheetName);
   }
 
   /**
-   * insert the new test result colunm with title (TEST_RESULT_COLUMN) (static)
+   * insert the new test result colunm with title (testResultCol) (static)
    * 
    * @param title     the header title
    * @param sheetName The sheet to find the test
@@ -136,10 +123,7 @@ public class Report {
    */
   public static boolean createNewResultColTitle(String title, String sheetName, String sheetID) {
     Report foundReport = getReport(sheetID);
-    if (foundReport != null)
-      return foundReport.createNewResultColTitle(title, sheetName);
-    else
-      return false;
+    return (foundReport != null)&&foundReport.createNewResultColTitle(title, sheetName);
   }
 
   // FACTORY
@@ -199,8 +183,8 @@ public class Report {
     int blankCount = 0;
     for (int row10x = 0; row10x < 1000 && blankCount <= MAX_BLANK_ROW; row10x++) {
       // Get the Name Range
-      List<List<Object>> values = Sheet.readRange(sheetName, TEST_NAME_COLUMN, TEST_NAME_START_ROW + row10x * 10,
-          TEST_NAME_COLUMN, TEST_NAME_START_ROW + row10x * 10 + 10, sheetID);
+      List<List<Object>> values = Sheet.readRange(sheetName, testNameCol, testNameStartRow + row10x * 10,
+          testNameCol, testNameStartRow + row10x * 10 + 10, sheetID);
       if (ListUtils.isEmpty(values))
         break; // break in blank sheet
       else {
@@ -208,9 +192,9 @@ public class Report {
           String scanName = ListUtils.getValue(values, rowIndex, 0);
           if (!StringUtils.isEmpty(scanName)) {
             blankCount = 0;
-            maxRowIndex = (TEST_NAME_START_ROW + row10x * 10 + rowIndex); // now it is current index
+            maxRowIndex = (testNameStartRow + row10x * 10 + rowIndex); // now it is current index
             if (tcName.equalsIgnoreCase(scanName) && (allowExistingResult || StringUtils.isEmpty(ListUtils.getValue(
-                Sheet.readRange(sheetName, TEST_RESULT_COLUMN, maxRowIndex, TEST_RESULT_COLUMN, maxRowIndex, sheetID),
+                Sheet.readRange(sheetName, testResultCol, maxRowIndex, testResultCol, maxRowIndex, sheetID),
                 0, 0))))
               return maxRowIndex;
           } else {
@@ -234,21 +218,7 @@ public class Report {
    *         not found
    */
   public int updateTestResultByName(String tcName, String tcResult, String sheetName, boolean overWriteResult) {
-    int foundTestRow = findTestByName(tcName, sheetName, overWriteResult);
-    if (foundTestRow >= 0)
-      Sheet.setValue(tcResult,
-          sheetName + "!" + TEST_RESULT_COLUMN + foundTestRow + ":" + TEST_RESULT_COLUMN + foundTestRow, sheetID);
-    else {
-      if (maxRowIndex < TEST_NAME_START_ROW)
-        maxRowIndex = TEST_NAME_START_ROW;
-      foundTestRow = maxRowIndex + 1;
-
-      Sheet.setValue(tcName, sheetName + "!" + TEST_NAME_COLUMN + foundTestRow + ":" + TEST_NAME_COLUMN + foundTestRow,
-          sheetID);
-      Sheet.setValue(tcResult,
-          sheetName + "!" + TEST_RESULT_COLUMN + foundTestRow + ":" + TEST_RESULT_COLUMN + foundTestRow, sheetID);
-    }
-    return foundTestRow;
+    return updateTestResultAtRow(tcName, tcResult, sheetName, findTestByName(tcName, sheetName, overWriteResult));
   }
 
   /**
@@ -260,15 +230,15 @@ public class Report {
    */
   public int findTestInExistingResult(String tcName, String sheetName) {
     // Get the test index from the existing result
-    int existingResultIndex = testResult.findTheTestIndex(tcName);
+    int existingResultIndex = TestResult.findTheTestIndex(tcName);
     // Prepare to search test
     existingResultIndex++;
     int matchCount = -1;
     int blankCount = 0;
     for (int row10x = 0; row10x < 1000 && blankCount <= MAX_BLANK_ROW; row10x++) {
       // Get the Name Range
-      List<List<Object>> values = Sheet.readRange(sheetName, TEST_NAME_COLUMN, TEST_NAME_START_ROW + row10x * 10,
-          TEST_NAME_COLUMN, TEST_NAME_START_ROW + row10x * 10 + 10, sheetID);
+      List<List<Object>> values = Sheet.readRange(sheetName, testNameCol, testNameStartRow + row10x * 10,
+          testNameCol, testNameStartRow + row10x * 10 + 10, sheetID);
       if (ListUtils.isEmpty(values))
         break; // break in blank sheet
       else {
@@ -276,7 +246,7 @@ public class Report {
           String scanName = ListUtils.getValue(values, rowIndex, 0);
           if (!StringUtils.isEmpty(scanName)) {
             blankCount = 0;
-            maxRowIndex = (TEST_NAME_START_ROW + row10x * 10 + rowIndex); // now it is current index
+            maxRowIndex = (testNameStartRow + row10x * 10 + rowIndex); // now it is current index
             if (tcName.equalsIgnoreCase(scanName)) {
               matchCount++;
               if (matchCount == existingResultIndex)
@@ -301,28 +271,32 @@ public class Report {
    *         not found
    */
   public int updateTestResultInExistingResult(String tcName, String tcResult, String sheetName) {
-    int foundTestRow = findTestInExistingResult(tcName, sheetName);
+    return updateTestResultAtRow(tcName, tcResult, sheetName, findTestInExistingResult(tcName, sheetName));
+  }
+
+  public int updateTestResultAtRow(String tcName, String tcResult, String sheetName, int rowIndex) {
+    int foundTestRow = rowIndex;
     if (foundTestRow >= 0) {
-      testResult.addNew(tcName, tcResult);
+      TestResult.addNew(tcName, tcResult);
       Sheet.setValue(tcResult,
-          sheetName + "!" + TEST_RESULT_COLUMN + foundTestRow + ":" + TEST_RESULT_COLUMN + foundTestRow, sheetID);
+          sheetName + "!" + testResultCol + foundTestRow + ":" + testResultCol + foundTestRow, sheetID);
     } else {
-      if (maxRowIndex < TEST_NAME_START_ROW)
-        maxRowIndex = TEST_NAME_START_ROW;
+      if (maxRowIndex < testNameStartRow)
+        maxRowIndex = testNameStartRow;
       foundTestRow = maxRowIndex + 1;
 
-      Sheet.setValue(tcName, sheetName + "!" + TEST_NAME_COLUMN + foundTestRow + ":" + TEST_NAME_COLUMN + foundTestRow,
+      Sheet.setValue(tcName, sheetName + "!" + testNameCol + foundTestRow + ":" + testNameCol + foundTestRow,
           sheetID);
       Sheet.setValue(tcResult,
-          sheetName + "!" + TEST_RESULT_COLUMN + foundTestRow + ":" + TEST_RESULT_COLUMN + foundTestRow, sheetID);
-      testResult.addNew(tcName, tcResult);
+          sheetName + "!" + testResultCol + foundTestRow + ":" + testResultCol + foundTestRow, sheetID);
+      TestResult.addNew(tcName, tcResult);
     }
     return foundTestRow;
   }
 
   /**
    * insert the new test result colunm at the default location
-   * (TEST_RESULT_COLUMN)
+   * (testResultCol)
    * 
    * @param sheetName The sheet to find the test
    * @return true if the column is inserted successful
@@ -330,28 +304,28 @@ public class Report {
   public boolean createNewResultCol(String sheetName) {
     // Record the current formula of the header
     List<List<Object>> values = null;
-    if (TEST_NAME_START_ROW > 2)
-      values = Sheet.readRange(sheetName, TEST_RESULT_COLUMN, 1, TEST_RESULT_COLUMN, TEST_NAME_START_ROW-2, sheetID);
+    if (testNameStartRow > 2)
+      values = Sheet.readRange(sheetName, testResultCol, 1, testResultCol, testNameStartRow-2, sheetID);
 
     // Insert a column
-    Sheet.insertColumn(letterToColumn(TEST_RESULT_COLUMN), sheetName, sheetID);
+    Sheet.insertColumn(letterToColumn(testResultCol), sheetName, sheetID);
     
 
     // Write down the old formula
-    if (values != null && TEST_NAME_START_ROW > 2)
-      Sheet.setValues(values, sheetName, TEST_RESULT_COLUMN, 1, TEST_RESULT_COLUMN, TEST_NAME_START_ROW-2, sheetID);
+    if (values != null && testNameStartRow > 2)
+      Sheet.setValues(values, sheetName, testResultCol, 1, testResultCol, testNameStartRow-2, sheetID);
 
     // Add the column label
     LocalDateTime now = LocalDateTime.now();
     String colHeader = now.format(DATETIME_FORMATTER);
-    Sheet.setValue(colHeader, sheetName + "!" + TEST_RESULT_COLUMN + (TEST_NAME_START_ROW - 1) + ":"
-        + TEST_RESULT_COLUMN + (TEST_NAME_START_ROW - 1), sheetID);
+    Sheet.setValue(colHeader, sheetName + "!" + testResultCol + (testNameStartRow - 1) + ":"
+        + testResultCol + (testNameStartRow - 1), sheetID);
     return false;
   }
 
   /**
    * insert the new test result colunm at the default location
-   * (TEST_RESULT_COLUMN)
+   * (testResultCol)
    * 
    * @param title     the header title
    * @param sheetName The sheet to find the test
@@ -359,19 +333,19 @@ public class Report {
    */
   public boolean createNewResultColTitle(String title, String sheetName) {
     // Insert a column
-    Sheet.insertColumn(letterToColumn(TEST_RESULT_COLUMN), sheetName, sheetID);
+    Sheet.insertColumn(letterToColumn(testResultCol), sheetName, sheetID);
 
     // Add the column label
     LocalDateTime now = LocalDateTime.now();
     String colHeader = title + "-" + now.format(DATETIME_FORMATTER);
-    Sheet.setValue(colHeader, sheetName + "!" + TEST_RESULT_COLUMN + (TEST_NAME_START_ROW - 1) + ":"
-        + TEST_RESULT_COLUMN + (TEST_NAME_START_ROW - 1), sheetID);
+    Sheet.setValue(colHeader, sheetName + "!" + testResultCol + (testNameStartRow - 1) + ":"
+        + testResultCol + (testNameStartRow - 1), sheetID);
     return false;
   }
 
   /**
    * overwrite the new test result colunm at the default location
-   * (TEST_RESULT_COLUMN)
+   * (testResultCol)
    * 
    * @param title     the header title
    * @param sheetName The sheet to find the test
@@ -380,66 +354,28 @@ public class Report {
     // Add the column label
     LocalDateTime now = LocalDateTime.now();
     String colHeader = title + "-" + now.format(DATETIME_FORMATTER);
-    Sheet.setValue(colHeader, sheetName + "!" + TEST_RESULT_COLUMN + (TEST_NAME_START_ROW - 1) + ":"
-        + TEST_RESULT_COLUMN + (TEST_NAME_START_ROW - 1), sheetID);
+    Sheet.setValue(colHeader, sheetName + "!" + testResultCol + (testNameStartRow - 1) + ":"
+        + testResultCol + (testNameStartRow - 1), sheetID);
   }
 
   // Follow help from:
-  static public String columnToLetter(int column) {
+  public static String columnToLetter(int column) {
     int temp;
-    String letter = "";
+    StringBuilder letter = new StringBuilder();
     while (column > 0) {
       temp = (column) % 26;
-      letter = (char) (temp + 65) + letter;
+      letter.insert(0, (char) (temp + 65));
       column = (column - temp - 1) / 26;
     }
-    return letter;
+    return letter.toString();
   }
 
-  static public int letterToColumn(String letter) {
+  public static int letterToColumn(String letter) {
     int column = 0;
-    int length = letter.length();
+    double length = letter.length();
     for (int i = 0; i < length; i++) {
       column += ((int) letter.charAt(i) - 64) * Math.pow(26, length - i - 1);
     }
     return column - 1;
-  }
-
-  static class testResult {
-    String name = null;
-    int index = -1;
-
-    public int getIndex() {
-      return index;
-    }
-
-    String result = null;
-
-    public testResult(String name, String result, int index) {
-      this.name = name;
-      this.result = result;
-      this.index = index;
-    }
-
-    public boolean equal(String name) {
-      if (this.name != null && name != null)
-        return this.name.equalsIgnoreCase(name);
-      return false;
-    }
-
-    // FACTORY
-    static ArrayList<testResult> results = new ArrayList<testResult>();
-
-    static public int findTheTestIndex(String name) {
-      for (int iExistingResult = (results.size() - 1); iExistingResult >= 0; iExistingResult--)
-        if (results.get(iExistingResult).equal(name))
-          return results.get(iExistingResult).getIndex();
-      return -1;
-    }
-
-    static public void addNew(String name, String result) {
-      int foundIndex = findTheTestIndex(name) + 1;
-      results.add(new testResult(name, result, foundIndex));
-    }
   }
 }

@@ -34,16 +34,15 @@ public class Sheet {
   public static final String CLASSNAME = "com.kms.gdrive.sheet.Sheet";
   private static final String APPLICATION_NAME = "KMS Google Sheet API";
   private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
-  private static String CREDENTIALS_DIRECTORY = "gconf";
-  private static String CREDENTIALS_FILE = "gsheet-auth.json"; // As resource
-  // private static String credentialsFilePath = "gsheet-auth.json";
+  private static String credentialsDirectory = "gconf";
+  private static String credentialsFile = "gsheet-auth.json"; // As resource
   private static final List<String> SCOPES = Arrays.asList(SheetsScopes.SPREADSHEETS, SheetsScopes.DRIVE);
 
-  public static void setCredentialDir (String CREDENTIALS_DIRECTORY, String CREDENTIALS_FILE) {
-    if (!StringUtils.isEmpty(CREDENTIALS_DIRECTORY))
-      Sheet.CREDENTIALS_DIRECTORY = CREDENTIALS_DIRECTORY;
-    if (!StringUtils.isEmpty(CREDENTIALS_FILE))
-      Sheet.CREDENTIALS_FILE = CREDENTIALS_FILE;
+  public static void setCredentialDir (String credentialsDirectory, String credentialsFile) {
+    if (!StringUtils.isEmpty(credentialsDirectory))
+      Sheet.credentialsDirectory = credentialsDirectory;
+    if (!StringUtils.isEmpty(credentialsFile))
+      Sheet.credentialsFile = credentialsFile;
   }
 
   /**
@@ -53,29 +52,19 @@ public class Sheet {
    * @return An authorized Credential object.
    */
   private static Credential getCredentials(final NetHttpTransport httpTransport) {
-    try {
-      // Disable log
+    // Load google report configuration directory path / env
+    File checkExists = new File(credentialsDirectory + File.separator + credentialsFile);
 
-      // Load client secrets
-      InputStreamReader credentialReader = null;
-      final java.util.logging.Logger buggyLogger = java.util.logging.Logger
-          .getLogger(FileDataStoreFactory.class.getName());
-      buggyLogger.setLevel(java.util.logging.Level.SEVERE);
-
-      // Load google report configuration directory path / env
-      File checkExists = new File(CREDENTIALS_DIRECTORY + File.separator + CREDENTIALS_FILE);
-
-      boolean resourceMode = true;
-      if (checkExists.exists() && checkExists.isFile())
-        resourceMode = false;
-      
-      credentialReader = resourceMode?
-        new InputStreamReader(Sheet.class.getResourceAsStream(File.separator+CREDENTIALS_FILE)):
-        new InputStreamReader((new FileInputStream(CREDENTIALS_DIRECTORY + File.separator + CREDENTIALS_FILE)));
+    boolean resourceMode = true;
+    if (checkExists.exists() && checkExists.isFile())
+      resourceMode = false;
+    
+    try (InputStreamReader credentialReader = resourceMode?
+      new InputStreamReader(Sheet.class.getResourceAsStream(File.separator+credentialsFile)):
+      new InputStreamReader((new FileInputStream(credentialsDirectory + File.separator + credentialsFile)));) {
       File tokenDirFileObj = resourceMode?
-        new File(Sheet.class.getResource(File.separator).getFile()):
-        new File(CREDENTIALS_DIRECTORY);
-
+      new File(Sheet.class.getResource(File.separator).getFile()):
+      new File(credentialsDirectory);
       GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, credentialReader);
 
       // Build flow and trigger user authorization request.
@@ -84,7 +73,8 @@ public class Sheet {
               .setAccessType("offline").build();
       LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
       return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       Logger.getLogger(CLASSNAME).log(Level.WARNING, e.getMessage());
       return null;
     }
@@ -104,10 +94,7 @@ public class Sheet {
   public static List<List<Object>> readRange(String sheetName, String startCol, int startRow, String endCol, int endRow,
       String sheetID) {
     Sheet foundSheet = getSheet(sheetID);
-    if (foundSheet != null)
-      return foundSheet.readRange(sheetName, startCol, startRow, endCol, endRow);
-    else
-      return Collections.emptyList();
+    return (foundSheet == null)?Collections.emptyList():foundSheet.readRange(sheetName, startCol, startRow, endCol, endRow);
   }
 
   /**
@@ -120,10 +107,7 @@ public class Sheet {
    */
   public static boolean setValue(String value, String writeRange, String sheetID) {
     Sheet foundSheet = getSheet(sheetID);
-    if (foundSheet != null)
-      return foundSheet.setValue(value, writeRange);
-    else
-      return false;
+    return (foundSheet != null)&&foundSheet.setValue(value, writeRange);
   }
 
   /**
@@ -138,12 +122,9 @@ public class Sheet {
    * @param sheetID    The sheetID which can get from the google sheet URL
    * @return true is successful
    */
-  static public boolean setValues(List<List<Object>> values, String sheetName, String startCol, int startRow, String endCol, int endRow, String sheetID) {
+  public static boolean setValues(List<List<Object>> values, String sheetName, String startCol, int startRow, String endCol, int endRow, String sheetID) {
     Sheet foundSheet = getSheet(sheetID);
-    if (foundSheet != null)
-      return foundSheet.setValues(values, sheetName, startCol, startRow, endCol, endRow);
-    else
-      return false;
+    return (foundSheet != null)&&foundSheet.setValues(values, sheetName, startCol, startRow, endCol, endRow);
   }
 
   /**
@@ -154,12 +135,9 @@ public class Sheet {
    * @param sheetID    The sheetID which can get from the google sheet URL
    * @return true is successful
    */
-  static public boolean setValues(List<List<Object>> values, String writeRange, String sheetID) {
+  public static boolean setValues(List<List<Object>> values, String writeRange, String sheetID) {
     Sheet foundSheet = getSheet(sheetID);
-    if (foundSheet != null)
-      return foundSheet.setValues(values, writeRange);
-    else
-      return false;
+    return (foundSheet != null)&&foundSheet.setValues(values, writeRange);
   }
 
   /**
@@ -172,10 +150,7 @@ public class Sheet {
    */
   public static boolean insertColumn(int columnIndex, String sheetName, String sheetID) {
     Sheet foundSheet = getSheet(sheetID);
-    if (foundSheet != null)
-      return foundSheet.insertColumn(columnIndex, sheetName);
-    else
-      return false;
+    return (foundSheet != null)&&foundSheet.insertColumn(columnIndex, sheetName);
   }
 
   // MANAGE Sheet object by Factory
@@ -254,6 +229,7 @@ public class Sheet {
     return Collections.emptyList();
   }
 
+  static final String INPUT_OPT_USER_ENTERED = "USER_ENTERED";
   /**
    * setValue set the value to range
    * 
@@ -267,7 +243,7 @@ public class Sheet {
         // Create value list range
         ValueRange updateValues = new ValueRange();
         updateValues.setValues(Arrays.asList(Arrays.asList((Object) value)));
-        service.spreadsheets().values().update(sheetID, writeRange, updateValues).setValueInputOption("USER_ENTERED")
+        service.spreadsheets().values().update(sheetID, writeRange, updateValues).setValueInputOption(INPUT_OPT_USER_ENTERED)
             .execute();
         return true;
       } catch (IOException e) {
@@ -294,7 +270,7 @@ public class Sheet {
         // Create value list range
         ValueRange updateValues = new ValueRange();
         updateValues.setValues(values);
-        service.spreadsheets().values().update(sheetID, writeRange, updateValues).setValueInputOption("USER_ENTERED")
+        service.spreadsheets().values().update(sheetID, writeRange, updateValues).setValueInputOption(INPUT_OPT_USER_ENTERED)
             .execute();
         return true;
       } catch (IOException e) {
@@ -316,7 +292,7 @@ public class Sheet {
         // Create value list range
         ValueRange updateValues = new ValueRange();
         updateValues.setValues(values);
-        service.spreadsheets().values().update(sheetID, writeRange, updateValues).setValueInputOption("USER_ENTERED")
+        service.spreadsheets().values().update(sheetID, writeRange, updateValues).setValueInputOption(INPUT_OPT_USER_ENTERED)
             .execute();
         return true;
       } catch (IOException e) {
