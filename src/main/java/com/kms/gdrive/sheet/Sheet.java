@@ -111,7 +111,7 @@ public class Sheet {
   }
 
   /**
-   * setValue get the values from range (static)
+   * setValue get the value from range (static)
    * 
    * @param value      To write to as String
    * @param writeRange The range to write
@@ -122,6 +122,42 @@ public class Sheet {
     Sheet foundSheet = getSheet(sheetID);
     if (foundSheet != null)
       return foundSheet.setValue(value, writeRange);
+    else
+      return false;
+  }
+
+  /**
+   * setValues set the values to range
+   * 
+   * @param values     To write to as copy from read range
+   * @param sheetName The sheet to find the test
+   * @param startCol  start Column to get range
+   * @param startRow  start Row to get range
+   * @param endCol    end Column to get range
+   * @param endRow    end Row to get range
+   * @param sheetID    The sheetID which can get from the google sheet URL
+   * @return true is successful
+   */
+  static public boolean setValues(List<List<Object>> values, String sheetName, String startCol, int startRow, String endCol, int endRow, String sheetID) {
+    Sheet foundSheet = getSheet(sheetID);
+    if (foundSheet != null)
+      return foundSheet.setValues(values, sheetName, startCol, startRow, endCol, endRow);
+    else
+      return false;
+  }
+
+  /**
+   * setValues set the values to range
+   * 
+   * @param values     To write to as copy from read range
+   * @param writeRange The range to write
+   * @param sheetID    The sheetID which can get from the google sheet URL
+   * @return true is successful
+   */
+  static public boolean setValues(List<List<Object>> values, String writeRange, String sheetID) {
+    Sheet foundSheet = getSheet(sheetID);
+    if (foundSheet != null)
+      return foundSheet.setValues(values, writeRange);
     else
       return false;
   }
@@ -207,7 +243,10 @@ public class Sheet {
     if (service != null)
       try {
         final String readRange = sheetName + "!" + startCol + startRow + ":" + endCol + endRow;
-        ValueRange valueRange = service.spreadsheets().values().get(sheetID, readRange).execute();
+        com.google.api.services.sheets.v4.Sheets.Spreadsheets.Values.Get getRequest = service.spreadsheets().values().get(sheetID, readRange);
+        getRequest.setValueRenderOption("FORMULA");
+        ValueRange valueRange = getRequest.execute();
+        valueRange.set("valueRenderOption", "FORMULA");
         return valueRange.getValues();
       } catch (IOException e) {
         Logger.getLogger(CLASSNAME).log(Level.WARNING, e.getMessage());
@@ -216,7 +255,7 @@ public class Sheet {
   }
 
   /**
-   * setValue set the values to range
+   * setValue set the value to range
    * 
    * @param value      To write to as String
    * @param writeRange The range to write
@@ -228,6 +267,55 @@ public class Sheet {
         // Create value list range
         ValueRange updateValues = new ValueRange();
         updateValues.setValues(Arrays.asList(Arrays.asList((Object) value)));
+        service.spreadsheets().values().update(sheetID, writeRange, updateValues).setValueInputOption("USER_ENTERED")
+            .execute();
+        return true;
+      } catch (IOException e) {
+        Logger.getLogger(CLASSNAME).log(Level.WARNING, e.getMessage());
+      }
+    return false;
+  }
+
+  /**
+   * setValue set the values to range
+   * 
+   * @param values     To write to as copy from read range
+   * @param sheetName The sheet to find the test
+   * @param startCol  start Column to get range
+   * @param startRow  start Row to get range
+   * @param endCol    end Column to get range
+   * @param endRow    end Row to get range
+   * @return true is successful
+   */
+  public boolean setValues(List<List<Object>> values, String sheetName, String startCol, int startRow, String endCol, int endRow) {
+    if (service != null)
+      try {
+        final String writeRange = sheetName + "!" + startCol + startRow + ":" + endCol + endRow;
+        // Create value list range
+        ValueRange updateValues = new ValueRange();
+        updateValues.setValues(values);
+        service.spreadsheets().values().update(sheetID, writeRange, updateValues).setValueInputOption("USER_ENTERED")
+            .execute();
+        return true;
+      } catch (IOException e) {
+        Logger.getLogger(CLASSNAME).log(Level.WARNING, e.getMessage());
+      }
+    return false;
+  }
+
+  /**
+   * setValue set the values to range
+   * 
+   * @param values     To write to as copy from read range
+   * @param writeRange The range to write
+   * @return true is successful
+   */
+  public boolean setValues(List<List<Object>> values, String writeRange) {
+    if (service != null)
+      try {
+        // Create value list range
+        ValueRange updateValues = new ValueRange();
+        updateValues.setValues(values);
         service.spreadsheets().values().update(sheetID, writeRange, updateValues).setValueInputOption("USER_ENTERED")
             .execute();
         return true;

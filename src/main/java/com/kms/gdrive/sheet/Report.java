@@ -25,10 +25,10 @@ public class Report {
     Report.TEST_RESULT_COLUMN = TEST_RESULT_COLUMN;
   }
 
-  static int TEST_NAME_START_ROW = 7;
+  static int TEST_NAME_START_ROW = 12;
 
   /**
-   * @param TEST_NAME_START_ROW default value is 5, min number is 2
+   * @param TEST_NAME_START_ROW default value is 12, min number is 2
    */
   static public void set_TEST_NAME_START_ROW(int TEST_NAME_START_ROW) {
     Report.TEST_NAME_START_ROW = TEST_NAME_START_ROW;
@@ -328,8 +328,18 @@ public class Report {
    * @return true if the column is inserted successful
    */
   public boolean createNewResultCol(String sheetName) {
+    // Record the current formula of the header
+    List<List<Object>> values = null;
+    if (TEST_NAME_START_ROW > 2)
+      values = Sheet.readRange(sheetName, TEST_RESULT_COLUMN, 1, TEST_RESULT_COLUMN, TEST_NAME_START_ROW-2, sheetID);
+
     // Insert a column
     Sheet.insertColumn(letterToColumn(TEST_RESULT_COLUMN), sheetName, sheetID);
+    
+
+    // Write down the old formula
+    if (values != null && TEST_NAME_START_ROW > 2)
+      Sheet.setValues(values, sheetName, TEST_RESULT_COLUMN, 1, TEST_RESULT_COLUMN, TEST_NAME_START_ROW-2, sheetID);
 
     // Add the column label
     LocalDateTime now = LocalDateTime.now();
