@@ -15,3 +15,6 @@ target
 mvn clean deploy
 mvn nexus-staging:release
 mvn nexus-staging:drop
+/confDir/
+/.idea/
+/.settings/

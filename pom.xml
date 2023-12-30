@@ -19,7 +19,8 @@
     </developer>
   </developers>
 
-  <licenses>
+
+<licenses>
   <license>
     <name>Apache License, Version 2.0</name>
     <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
