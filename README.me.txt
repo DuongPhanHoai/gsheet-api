@@ -24,8 +24,6 @@ https://console.cloud.google.com/apis/credentials/consent/edit?project=<Your-Pro
 - https://console.cloud.google.com/apis/credentials?project=<Your-Project>
 >>>> "+ CREATE CREDENTIALS"
 
-AIzaSyBo1VaHSA-r-ngW2H_SZGOLLgJBG1rP9mY
-
 6. Enable the API
 https://developers.google.com/sheets/api/quickstart/java- 
 - https://console.cloud.google.com/apis/enableflow?apiid=sheets.googleapis.com&project=<Your-Project>
